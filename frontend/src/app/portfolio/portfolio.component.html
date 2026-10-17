@@ -1,0 +1,331 @@
+<div class="portfolio-page">
+  <header class="page-header" *ngIf="!showImportPanel">
+    <div class="page-heading">
+      <p class="page-eyebrow">Portfolio Monitoring</p>
+      <h1>Residual Value Portfolio</h1>
+      <p>Monitor active leases, forecast coverage, and potential residual-value exposure.</p>
+    </div>
+    <div class="header-actions">
+      <label class="import-scope" *ngIf="availableImports.length > 0">
+        <span>Portfolio data</span>
+        <select [ngModel]="activeImportId" (ngModelChange)="selectImport($event)">
+          <option [ngValue]="null">All imports (exact duplicates merged)</option>
+          <option *ngFor="let item of availableImports" [ngValue]="item.import_id">
+            {{ item.file_name }} · Import #{{ item.import_id }}
+          </option>
+        </select>
+      </label>
+      <button type="button" class="secondary-button" (click)="toggleArchivedImports()">
+        {{ showArchivedImports ? 'Back to portfolio' : 'Archived imports (' + archivedImports.length + ')' }}
+      </button>
+      <button type="button" class="secondary-button" *ngIf="activeImportId !== null && !showArchivedImports" [disabled]="loadingVehicles" (click)="refreshPortfolio()">Refresh</button>
+      <button type="button" class="secondary-button" *ngIf="activeImportId !== null && !showArchivedImports" [disabled]="archiveInProgressId !== null" (click)="archiveImport(availableImports.find(item => item.import_id === activeImportId))">Archive selected</button>
+      <button type="button" class="primary-button" (click)="openImportPanel()">+ Import Portfolio</button>
+    </div>
+  </header>
+
+  <p class="history-loading" *ngIf="importsLoading">Loading import history...</p>
+  <p class="error-message" *ngIf="importHistoryError" role="alert">{{ importHistoryError }}</p>
+  <p class="information-message" *ngIf="importManagerMessage" role="status">{{ importManagerMessage }}</p>
+  <p class="error-message" *ngIf="importManagerError" role="alert">{{ importManagerError }}</p>
+
+  <section class="archived-imports-panel" *ngIf="showArchivedImports && !showImportPanel" aria-labelledby="archived-imports-title">
+    <header class="archived-imports-header">
+      <div>
+        <p class="section-kicker">Your account</p>
+        <h2 id="archived-imports-title">Archived imports</h2>
+        <p>Archived files are hidden from your active portfolio. Their records and forecasts are preserved.</p>
+      </div>
+      <button type="button" class="secondary-button" [disabled]="importsLoading" (click)="loadImports()">Refresh list</button>
+    </header>
+
+    <p class="history-loading" *ngIf="importsLoading">Loading archived imports...</p>
+    <p class="empty-archives" *ngIf="!importsLoading && archivedImports.length === 0">You have no archived imports.</p>
+
+    <div class="archived-import-list" *ngIf="archivedImports.length > 0">
+      <article class="archived-import-row" *ngFor="let item of archivedImports">
+        <div class="archived-import-summary">
+          <strong>{{ item.file_name }}</strong>
+          <span>Import #{{ item.import_id }} · {{ item.successful_rows }} of {{ item.total_rows }} rows</span>
+        </div>
+        <button type="button" class="secondary-button" [disabled]="restoreInProgressId !== null" (click)="restoreImport(item)">
+          {{ restoreInProgressId === item.import_id ? 'Restoring...' : 'Restore' }}
+        </button>
+      </article>
+    </div>
+  </section>
+
+  <section class="portfolio-empty-state" *ngIf="!importsLoading && !importHistoryError && availableImports.length === 0 && !showImportPanel">
+    <div class="empty-state-mark" aria-hidden="true">+</div>
+    <h2>No portfolio imported yet</h2>
+    <p>Upload a CSV or XLSX portfolio to begin monitoring vehicle residual values.</p>
+    <button type="button" class="primary-button" (click)="openImportPanel()">Import Portfolio</button>
+  </section>
+
+  <section class="portfolio-import-state" *ngIf="showImportPanel" aria-labelledby="import-title">
+    <div class="import-heading">
+      <div>
+        <p class="section-kicker">Portfolio setup</p>
+        <h2 id="import-title">Import vehicle portfolio</h2>
+        <p>Choose a CSV or XLSX file, validate its rows, then import the portfolio.</p>
+      </div>
+      <button type="button" class="icon-close" aria-label="Close import" (click)="closeImportPanel()">×</button>
+    </div>
+
+    <div class="import-layout">
+      <div class="import-main">
+        <label class="import-upload-box" for="portfolio-file">
+          <span class="upload-symbol" aria-hidden="true">↑</span>
+          <strong>Choose your portfolio file</strong>
+          <span class="file-hint" *ngIf="!selectedFile">Select a CSV or XLSX file to begin.</span>
+          <span class="selected-file" *ngIf="selectedFile">Selected: <strong>{{ selectedFile.name }}</strong></span>
+          <input #fileInput id="portfolio-file" type="file" accept=".csv,.xlsx" (change)="onFileSelected($event)" />
+        </label>
+
+        <div class="import-actions">
+          <button type="button" class="secondary-button" [disabled]="!selectedFile" (click)="validateImport()">Validate File</button>
+          <button type="button" class="primary-button" [disabled]="!selectedFile || validationResult?.valid !== true" (click)="importPortfolio()">Import Portfolio</button>
+          <button type="button" class="text-button" (click)="closeImportPanel(); fileInput.value = ''">Cancel</button>
+        </div>
+
+        <div class="validation-summary" *ngIf="validationResult">
+          <h3>Validation Summary</h3>
+          <dl>
+            <div><dt>Total rows</dt><dd>{{ validationResult.total_rows }}</dd></div>
+            <div><dt>Valid rows</dt><dd>{{ validationResult.valid_rows }}</dd></div>
+            <div><dt>Invalid rows</dt><dd>{{ validationResult.invalid_rows }}</dd></div>
+          </dl>
+        </div>
+        <section class="validation-issues" *ngIf="validationResult?.valid === false" aria-labelledby="validation-issues-title" role="alert">
+          <h3 id="validation-issues-title">Please fix these file issues</h3>
+          <p *ngIf="validationResult.message">{{ validationResult.message }}</p>
+
+          <div *ngIf="validationResult.missing_columns?.length">
+            <h4>Required columns missing</h4>
+            <ul><li *ngFor="let column of validationResult.missing_columns">{{ column }}</li></ul>
+          </div>
+
+          <div *ngIf="validationResult.duplicate_vehicle_codes?.length">
+            <h4>Duplicate vehicle codes</h4>
+            <ul><li *ngFor="let code of validationResult.duplicate_vehicle_codes">{{ code }}</li></ul>
+          </div>
+
+          <div *ngIf="validationResult.errors?.length">
+            <h4>Details by CSV row</h4>
+            <ul class="validation-error-list">
+              <li *ngFor="let issue of validationResult.errors">
+                <strong *ngIf="issue.row !== null">Row {{ issue.row }}<span *ngIf="issue.vehicle_code"> · {{ issue.vehicle_code }}</span></strong>
+                <strong *ngIf="issue.row === null">File issue</strong>
+                <ul><li *ngFor="let reason of issue.errors">{{ reason }}</li></ul>
+              </li>
+            </ul>
+          </div>
+        </section>
+        <p class="error-message" *ngIf="importError" role="alert">{{ importError }}</p>
+        <p class="success-message" *ngIf="importSuccessMessage" role="status">{{ importSuccessMessage }}</p>
+      </div>
+
+      <aside class="import-help" aria-labelledby="required-fields-title">
+        <div class="import-help-heading">
+          <span class="help-mark" aria-hidden="true">▦</span>
+          <div>
+            <h3 id="required-fields-title">Example Required Fields</h3>
+            <p>Use these exact column names in your file.</p>
+          </div>
+        </div>
+        <dl class="field-guide required-field-guide">
+          <div><dt>vehicle_code</dt><dd>Unique vehicle reference</dd></div>
+          <div><dt>make</dt><dd>Example: Toyota</dd></div>
+          <div><dt>model</dt><dd>Example: Corolla</dd></div>
+          <div><dt>model_year</dt><dd>Four-digit year</dd></div>
+          <div><dt>purchase_value</dt><dd>Numeric amount only</dd></div>
+          <div><dt>lease_start_date</dt><dd>YYYY-MM-DD</dd></div>
+          <div><dt>lease_end_date</dt><dd>YYYY-MM-DD</dd></div>
+          <div><dt>original_rv</dt><dd>Numeric amount only</dd></div>
+          <div><dt>current_mileage</dt><dd>Numeric value in km</dd></div>
+          <div><dt>current_condition</dt><dd>Excellent, Good, or Fair</dd></div>
+          <div><dt>engine_hp</dt><dd>Numeric horsepower</dd></div>
+          <div><dt>accident_history</dt><dd>Unknown, Minor, or Major</dd></div>
+          <div><dt>expected_annual_mileage</dt><dd>Numeric km per year</dd></div>
+        </dl>
+        <details class="import-guidelines">
+          <summary>Optional columns</summary>
+          <p>last_inspection_date, transmission, fuel_type, drivetrain, body_type, exterior_color, interior_color, owner_count, seller_type, trim</p>
+        </details>
+        <button type="button" class="text-button template-download" (click)="downloadTemplate()">Download Template CSV</button>
+      </aside>
+    </div>
+  </section>
+
+  <ng-container *ngIf="availableImports.length > 0 && !showImportPanel && !showArchivedImports">
+    <p class="scope-caption" *ngIf="activeImportId === null">
+      Showing all {{ availableImports.length }} completed imports. Exact duplicate vehicle and lease records are shown once.
+    </p>
+    <p class="scope-caption" *ngIf="activeImportId !== null">
+      Showing Import #{{ activeImportId }} · {{ availableImports.find(item => item.import_id === activeImportId)?.file_name }}
+    </p>
+    <p class="summary-loading" *ngIf="loadingSummary">Loading portfolio summary...</p>
+    <p class="error-message" *ngIf="summaryError" role="alert">{{ summaryError }}</p>
+    <p class="error-message" *ngIf="vehicleError" role="alert">{{ vehicleError }}</p>
+    <p class="information-message" *ngIf="informationMessage" role="status">{{ informationMessage }}</p>
+    <p class="success-message" *ngIf="importSuccessMessage" role="status">{{ importSuccessMessage }}</p>
+
+    <section class="summary-grid" *ngIf="summary && !loadingSummary" aria-label="Portfolio summary">
+      <article class="metric-card">
+        <span class="metric-label">Active Portfolio</span>
+        <strong class="metric-value">{{ summary.active_leased_vehicles | number }}</strong>
+        <span class="metric-note">Active leased vehicles</span>
+      </article>
+      <article class="metric-card">
+        <span class="metric-label">Forecast Coverage</span>
+        <strong class="metric-value">{{ summary.vehicles_forecasted | number }}</strong>
+        <span class="metric-note">Vehicles with saved forecasts</span>
+      </article>
+      <article class="metric-card warning-card">
+        <span class="metric-label">Review Queue</span>
+        <strong class="metric-value">{{ summary.vehicles_requiring_review | number }}</strong>
+        <span class="metric-note">Analyst attention required</span>
+      </article>
+      <article class="metric-card risk-card">
+        <span class="metric-label">RV Exposure</span>
+        <strong class="metric-value">{{ summary.potential_rv_exposure | number:'1.0-2' }}</strong>
+        <span class="metric-note">Potential portfolio exposure</span>
+      </article>
+    </section>
+
+    <section class="portfolio-panel" aria-labelledby="vehicle-portfolio-title">
+      <div class="panel-header">
+        <div>
+          <h2 id="vehicle-portfolio-title">Vehicle Portfolio</h2>
+          <p>Search and review vehicle, inspection, lease, and forecast information.</p>
+        </div>
+        <span class="portfolio-counter">{{ vehicles.length }} shown · Page {{ currentPage }}</span>
+      </div>
+
+      <div class="portfolio-toolbar">
+        <label class="toolbar-search">
+          <span>Search vehicle</span>
+          <input type="search" placeholder="Vehicle ID, code, make or model" [(ngModel)]="searchText" (keyup.enter)="applyFilters()" />
+        </label>
+        <label class="control-group">
+          <span>Forecast status</span>
+          <select [(ngModel)]="selectedStatus">
+            <option value="ALL">All statuses</option>
+            <option value="NOT_FORECASTED">Not Forecasted</option>
+            <option value="Potential Exposure">Potential Exposure</option>
+            <option value="Above Original RV">Above Original RV</option>
+          </select>
+          <small class="control-help">
+            Maximum 100 vehicles per page.
+          </small>
+        
+        </label>
+        <label class="control-group count-control">
+
+        <span>Rows per page</span>
+
+        <select
+          [(ngModel)]="selectedLimit"
+        >
+          <option [ngValue]="10">10</option>
+          <option [ngValue]="20">20</option>
+          <option [ngValue]="30">30</option>
+          <option [ngValue]="40">40</option>
+          <option [ngValue]="50">50</option>
+          <option [ngValue]="100">100</option>
+        </select>
+
+        </label>
+        <button type="button" class="filter-button" [disabled]="loadingVehicles" (click)="applyFilters()">Apply</button>
+        <button type="button" class="secondary-button" (click)="clearFilters()">Clear</button>
+      </div>
+
+      <div class="active-filter-bar" *ngIf="searchText || selectedStatus !== 'ALL'">
+        <span>Active filters</span>
+        <span class="filter-chip" *ngIf="searchText">Search: {{ searchText }}</span>
+        <span class="filter-chip" *ngIf="selectedStatus !== 'ALL'">Status: {{ selectedStatus }}</span>
+      </div>
+
+      <div class="loading-state" *ngIf="loadingVehicles" role="status">Loading portfolio vehicles...</div>
+      <div class="empty-state" *ngIf="!loadingVehicles && !vehicleError && vehicles.length === 0 && emptyResultMessage">
+        <h3>No matching vehicles</h3>
+        <p>{{ emptyResultMessage }}</p>
+        <button type="button" class="secondary-button" (click)="clearFilters()">Clear search</button>
+      </div>
+
+      <div class="table-wrapper" *ngIf="!loadingVehicles && !vehicleError && vehicles.length > 0">
+        <table>
+          <thead>
+            <tr>
+              <th>Vehicle</th>
+              <th>Current State</th>
+              <th>Inspection</th>
+              <th>Lease End</th>
+              <th class="numeric-column">Original RV</th>
+              <th class="numeric-column">Updated Forecast</th>
+              <th class="numeric-column">RV Gap</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let vehicle of vehicles">
+              <td>
+                <strong class="vehicle-code">{{ vehicle.vehicle_code }}</strong>
+                <span class="vehicle-description">{{ vehicle.model_year }} {{ vehicle.make }} {{ vehicle.model }}</span>
+                <span class="vehicle-source">Import #{{ vehicle.import_id }} · {{ vehicle.file_name }}</span>
+              </td>
+              <td>
+                <strong>{{ vehicle.current_mileage | number }} km</strong>
+                <span class="secondary-text">{{ vehicle.current_condition }}</span>
+              </td>
+              <td>
+                <span *ngIf="vehicle.last_inspection_date; else noInspection">{{ vehicle.last_inspection_date | date:'mediumDate' }}</span>
+                <ng-template #noInspection><span class="muted-value">No inspection</span></ng-template>
+              </td>
+              <td>{{ vehicle.lease_end_date | date:'mediumDate' }}</td>
+              <td class="numeric-column">{{ vehicle.original_rv | number:'1.0-0' }}</td>
+              <td class="numeric-column">
+                <span *ngIf="vehicle.updated_forecast !== null; else noForecast" class="forecast-value">{{ vehicle.updated_forecast | number:'1.0-0' }}</span>
+                <ng-template #noForecast><span class="muted-value">Not Forecasted</span></ng-template>
+              </td>
+              <td class="numeric-column">
+                <span *ngIf="vehicle.rv_gap !== null; else noGap" [class.negative-gap]="vehicle.rv_gap < 0" [class.positive-gap]="vehicle.rv_gap >= 0">{{ vehicle.rv_gap | number:'1.0-0' }}</span>
+                <ng-template #noGap><span class="muted-value">—</span></ng-template>
+              </td>
+              <td>
+                <span class="status-badge" [class.not-forecasted-status]="vehicle.status === 'Not Forecasted'" [class.risk-status]="vehicle.status === 'Potential Exposure'" [class.positive-status]="vehicle.status === 'Above Original RV'">{{ vehicle.status }}</span>
+              </td>
+              <td><button type="button" class="details-button" (click)="viewDetails(vehicle.vehicle_id, vehicle.import_id)">View Details <span aria-hidden="true">→</span></button></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <footer class="pagination-bar" *ngIf="!loadingVehicles && vehicles.length > 0">
+        <div class="pagination-info">
+
+          <span>
+            Showing {{ vehicles.length }}
+            vehicle{{ vehicles.length === 1 ? '' : 's' }}
+            on page {{ currentPage }}.
+          </span>
+
+          <span *ngIf="hasMore">
+            More matching vehicles are available on the next page.
+          </span>
+
+          <span *ngIf="!hasMore">
+            This is the last page of matching vehicles.
+          </span>
+
+        </div>
+        <div class="pagination-actions">
+          <button type="button" class="pagination-button" [disabled]="currentPage === 1 || loadingVehicles" (click)="previousPage()">Previous</button>
+          <span class="page-number">{{ currentPage }}</span>
+          <button type="button" class="pagination-button" [disabled]="!hasMore || loadingVehicles" (click)="nextPage()">Next</button>
+        </div>
+      </footer>
+    </section>
+  </ng-container>
+</div>

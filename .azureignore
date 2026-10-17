@@ -1,0 +1,12 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.vscode/
+frontend/
+.git/
+*.env
+
+app/test_api.py
+app/test_database.py
+app/test_model.py

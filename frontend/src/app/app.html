@@ -1,0 +1,43 @@
+<div class="app-shell">
+  <aside class="sidebar">
+    <a class="brand" routerLink="/portfolio" aria-label="ARVF Engine home">
+      <span class="brand-icon">A</span>
+      <span class="brand-copy">
+        <strong>ARVF Engine</strong>
+        <small>Automotive Residual Value Forecasting Engine</small>
+      </span>
+    </a>
+
+    <nav class="navigation" aria-label="Main navigation">
+      <a class="nav-item" routerLink="/portfolio" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
+        <span class="nav-indicator" aria-hidden="true"></span>
+        Portfolio
+      </a>
+      <a class="nav-item" routerLink="/forecast" routerLinkActive="active">
+        <span class="nav-indicator" aria-hidden="true"></span>
+        Forecast
+      </a>
+      <a class="nav-item" routerLink="/model-info" routerLinkActive="active">
+        <span class="nav-indicator" aria-hidden="true"></span>
+        Model Information
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <span class="status-dot" aria-hidden="true"></span>
+      Forecast workspace
+      <button type="button" class="logout-button" (click)="logout()">Sign out</button>
+    </div>
+  </aside>
+
+  <div class="main-area">
+    <header class="topbar">
+      <span>Automotive Residual Value Forecasting Engine</span>
+      <span class="environment-badge">Analyst workspace</span>
+    </header>
+    <main class="page-content">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+</div>
+

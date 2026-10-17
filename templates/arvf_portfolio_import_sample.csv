@@ -1,0 +1,6 @@
+﻿vehicle_code,make,model,model_year,current_mileage,current_condition,engine_hp,accident_history,lease_start_date,lease_end_date,purchase_value,original_rv,expected_annual_mileage,last_inspection_date,transmission,fuel_type,drivetrain,body_type,exterior_color,interior_color,owner_count,seller_type,trim
+VEH-001,Toyota,Corolla,2021,48500,Good,169,Unknown,2025-01-15,2028-01-15,26000,18000,18000,2026-08-20,Automatic,Gasoline,FWD,Sedan,White,Black,1,Dealer,Base
+VEH-002,Honda,Civic,2020,63200,Excellent,174,Minor,2024-11-01,2027-11-01,28500,19500,20000,2026-08-10,Automatic,Gasoline,FWD,Sedan,Black,Gray,1,Dealer,Sport
+VEH-003,Suzuki,Swift,2022,31800,Good,89,Unknown,2025-06-01,2028-06-01,22000,15500,15000,2026-09-01,Automatic,Gasoline,FWD,Hatchback,Silver,Black,1,Private,Base
+VEH-004,Kia,Sportage,2021,54100,Fair,155,Major,2024-09-15,2027-09-15,42000,27500,22000,2026-07-25,Automatic,Gasoline,AWD,SUV,Gray,Beige,2,Dealer,Limited
+VEH-005,Toyota,Yaris,2023,24994,Excellent,106,Unknown,2026-01-10,2029-01-10,26000,18500,14000,2026-09-01,Automatic,Gasoline,FWD,Sedan,Blue,Black,1,Dealer,EX

@@ -1,0 +1,1017 @@
+<div class="forecast-page">
+
+
+  <!-- =====================================
+       PAGE HEADER
+  ====================================== -->
+
+  <div class="page-header">
+
+    <div>
+
+      <div class="page-eyebrow">
+        Residual Value Forecasting
+      </div>
+
+      <h1>
+        Generate Updated Forecast
+      </h1>
+
+      <p>
+        Select a portfolio vehicle, confirm its latest
+        condition and generate an updated lease-end
+        value estimate.
+      </p>
+
+    </div>
+
+  </div>
+
+
+
+  <!-- =====================================
+       1. VEHICLE SELECTION
+  ====================================== -->
+
+  <section class="content-card">
+
+    <div class="card-header">
+
+      <div>
+
+        <div class="section-label">
+          Vehicle Selection
+        </div>
+
+        <h2>
+          Select Vehicle
+        </h2>
+
+        <p class="section-description">
+          Search by vehicle ID or vehicle code.
+        </p>
+
+      </div>
+
+    </div>
+
+
+    <div class="forecast-import-scope">
+      <label class="field-label" for="forecast-import">Portfolio import</label>
+      <select
+        id="forecast-import"
+        [ngModel]="activeImportId"
+        (ngModelChange)="selectImport($event)"
+        [disabled]="importsLoading || availableImports.length === 0"
+      >
+        <option [ngValue]="null">
+          {{ importsLoading ? 'Loading imports...' : 'Select an imported portfolio' }}
+        </option>
+        <option *ngFor="let item of availableImports" [ngValue]="item.import_id">
+          {{ item.file_name }} · Import #{{ item.import_id }}
+        </option>
+      </select>
+      <p class="import-history-error" *ngIf="importHistoryError" role="alert">{{ importHistoryError }}</p>
+    </div>
+
+
+    <div class="vehicle-search-area">
+
+      <label class="field-label">
+        Vehicle Search
+      </label>
+
+
+      <div class="search-row">
+
+        <div class="search-input-wrapper">
+
+          <span class="search-icon">
+            ⌕
+          </span>
+
+          <input
+            type="text"
+            [(ngModel)]="vehicleSearchText"
+            placeholder="Enter vehicle ID or vehicle code"
+            (keyup.enter)="searchVehicles()"
+          />
+
+        </div>
+
+
+        <button
+          class="secondary-button search-button"
+          [disabled]="searchingVehicles || activeImportId === null"
+          (click)="searchVehicles()"
+        >
+
+          {{
+            searchingVehicles
+              ? 'Searching...'
+              : 'Search'
+          }}
+
+        </button>
+
+      </div>
+
+    </div>
+
+
+
+    <!-- SEARCH ERROR -->
+
+    <div
+      class="message-box error-message"
+      *ngIf="vehicleSearchError"
+    >
+      {{ vehicleSearchError }}
+    </div>
+
+
+
+    <!-- SEARCH RESULTS -->
+
+    <div
+      class="search-results"
+      *ngIf="
+        !searchingVehicles &&
+        vehicleSearchResults.length > 0
+      "
+    >
+
+      <div class="search-results-header">
+
+        <strong>
+          Matching Vehicles
+        </strong>
+
+        <span>
+          Select a vehicle to continue
+        </span>
+
+      </div>
+
+
+      <div class="vehicle-result-list">
+
+        <button
+          type="button"
+          class="vehicle-result-row"
+          *ngFor="let result of vehicleSearchResults"
+          (click)="selectVehicle(result)"
+        >
+
+          <div class="vehicle-result-main">
+
+            <span class="result-vehicle-code">
+              {{ result.vehicle_code }}
+            </span>
+
+            <span class="result-vehicle-id">
+              Vehicle ID {{ result.vehicle_id }}
+            </span>
+
+          </div>
+
+
+          <span class="select-action">
+            Select →
+          </span>
+
+        </button>
+
+      </div>
+
+    </div>
+
+  </section>
+
+
+
+  <!-- =====================================
+       2. SELECTED VEHICLE SUMMARY
+  ====================================== -->
+
+  <section
+    class="content-card"
+    *ngIf="selectedVehicle"
+  >
+
+    <div class="card-header">
+
+      <div>
+
+        <div class="section-label">
+          Selected Vehicle
+        </div>
+
+        <h2>
+          Vehicle Summary
+        </h2>
+
+      </div>
+
+
+      <span class="vehicle-badge">
+        {{ selectedVehicleDetails?.vehicle_code || selectedVehicle.vehicle_code }}
+      </span>
+
+    </div>
+
+
+
+    <!-- DETAILS LOADING -->
+
+    <div
+      class="inline-loading"
+      *ngIf="loadingVehicleDetails"
+    >
+
+      <div class="spinner"></div>
+
+      <span>
+        Loading vehicle information...
+      </span>
+
+    </div>
+
+
+
+    <!-- DETAILS ERROR -->
+
+    <div
+      class="message-box error-message"
+      *ngIf="
+        !loadingVehicleDetails &&
+        vehicleDetailsError
+      "
+    >
+      {{ vehicleDetailsError }}
+    </div>
+
+
+
+    <!-- SUMMARY VALUES -->
+
+    <div
+      class="vehicle-summary-grid"
+      *ngIf="
+        !loadingVehicleDetails &&
+        selectedVehicleDetails &&
+        !vehicleDetailsError
+      "
+    >
+
+      <div class="summary-item">
+
+        <span>
+          Vehicle
+        </span>
+
+        <strong>
+          {{ selectedVehicleDetails.make }}
+          {{ selectedVehicleDetails.model }}
+        </strong>
+
+        <small>
+          {{ selectedVehicleDetails.model_year }}
+        </small>
+
+      </div>
+
+
+      <div class="summary-item">
+
+        <span>
+          Current Mileage
+        </span>
+
+        <strong>
+          {{
+            selectedVehicleDetails.current_mileage
+            | number
+          }}
+          km
+        </strong>
+
+      </div>
+
+
+      <div class="summary-item">
+
+        <span>
+          Current Condition
+        </span>
+
+        <strong>
+          {{
+            selectedVehicleDetails.current_condition
+            || '—'
+          }}
+        </strong>
+
+      </div>
+
+
+      <div class="summary-item">
+
+        <span>
+          Lease End
+        </span>
+
+        <strong>
+          {{
+            selectedVehicleDetails.lease_end_date
+            | date:'mediumDate'
+          }}
+        </strong>
+
+      </div>
+
+
+      <div class="summary-item important-item">
+
+        <span>
+          Original RV
+        </span>
+
+        <strong>
+          {{
+            selectedVehicleDetails.original_rv
+            | number:'1.0-2'
+          }}
+        </strong>
+
+      </div>
+
+    </div>
+
+  </section>
+
+
+
+  <!-- =====================================
+       3. CURRENT VEHICLE ASSESSMENT
+  ====================================== -->
+
+  <section
+    class="content-card"
+    *ngIf="
+      selectedVehicleDetails &&
+      !loadingVehicleDetails &&
+      !vehicleDetailsError
+    "
+  >
+
+    <div class="card-header">
+
+      <div>
+
+        <div class="section-label">
+          Forecast Input
+        </div>
+
+        <h2>
+          Current Vehicle Assessment
+        </h2>
+
+        <p class="section-description">
+          Confirm or update the latest known vehicle
+          information before generating the estimate.
+        </p>
+
+      </div>
+
+    </div>
+
+
+
+    <div class="forecast-input-grid">
+
+
+      <!-- CURRENT MILEAGE -->
+
+      <div class="form-field">
+
+        <label>
+          Current Mileage
+        </label>
+
+        <div class="input-with-unit">
+
+          <input
+            type="number"
+            min="0"
+            [(ngModel)]="currentMileage"
+          />
+
+          <span>
+            km
+          </span>
+
+        </div>
+
+      </div>
+
+
+
+      <!-- CURRENT CONDITION -->
+
+      <div class="form-field">
+
+        <label>
+          Current Condition
+        </label>
+
+        <select
+          [(ngModel)]="currentCondition"
+        >
+
+          <option value="">
+            Select condition
+          </option>
+
+          <option value="Excellent">
+            Excellent
+          </option>
+
+          <option value="Good">
+            Good
+          </option>
+
+          <option value="Fair">
+            Fair
+          </option>
+
+        </select>
+
+      </div>
+
+
+
+      <!-- INSPECTION DATE -->
+
+      <div class="form-field">
+
+        <label>
+          Last Inspection Date
+        </label>
+
+        <input
+          type="date"
+          [(ngModel)]="lastInspectionDate"
+        />
+
+      </div>
+
+
+
+      <!-- LEASE-END CONDITION -->
+
+      <div class="form-field">
+
+        <label>
+          Expected Lease-End Condition
+        </label>
+
+        <select
+          [(ngModel)]="expectedLeaseEndCondition"
+        >
+
+          <option value="">
+            Same as current condition
+          </option>
+
+          <option value="Excellent">
+            Excellent
+          </option>
+
+          <option value="Good">
+            Good
+          </option>
+
+          <option value="Fair">
+            Fair
+          </option>
+
+        </select>
+
+        <small>
+          Optional scenario assumption.
+        </small>
+
+      </div>
+
+    </div>
+
+
+
+    <div
+      class="message-box error-message"
+      *ngIf="forecastError"
+    >
+      {{ forecastError }}
+    </div>
+
+
+
+    <div class="forecast-actions">
+
+      <button
+        class="primary-button"
+        [disabled]="generatingForecast"
+        (click)="generateForecast()"
+      >
+
+        {{
+          generatingForecast
+            ? 'Generating Forecast...'
+            : 'Generate Updated Forecast'
+        }}
+
+      </button>
+
+    </div>
+
+  </section>
+
+
+
+  <!-- =====================================
+       4. FORECAST RESULT
+  ====================================== -->
+
+  <section
+    class="content-card forecast-result-card"
+    *ngIf="forecastResult"
+  >
+
+    <div class="card-header result-header">
+
+      <div>
+
+        <div class="section-label">
+          Forecast Result
+        </div>
+
+        <h2>
+          Updated Lease-End Estimate
+        </h2>
+
+        <p class="section-description">
+          Review the estimated lease-end value
+          before saving it to the portfolio.
+        </p>
+
+      </div>
+
+
+      <span
+        class="status-badge"
+        [class.risk-status]="
+          forecastResult.rv_gap < 0
+        "
+        [class.positive-status]="
+          forecastResult.rv_gap >= 0
+        "
+      >
+        {{ forecastResult.rv_status }}
+      </span>
+
+    </div>
+
+
+
+    <!-- =====================================
+         MAIN RESULT METRICS
+    ====================================== -->
+
+    <div class="primary-result-grid">
+
+
+      <div class="result-card">
+
+        <span class="result-label">
+          Original RV
+        </span>
+
+        <strong class="result-value">
+          {{
+            forecastResult.original_rv
+            | number:'1.0-2'
+          }}
+        </strong>
+
+        <small>
+          Lease inception estimate
+        </small>
+
+      </div>
+
+
+
+      <div class="result-card highlighted-result">
+
+        <span class="result-label">
+          Updated Forecast
+        </span>
+
+        <strong class="result-value">
+          {{
+            forecastResult.updated_forecast
+            | number:'1.0-2'
+          }}
+        </strong>
+
+        <small>
+          Estimated lease-end value
+        </small>
+
+      </div>
+
+
+
+      <div
+        class="result-card"
+        [class.exposure-result]="
+          forecastResult.rv_gap < 0
+        "
+      >
+
+        <span class="result-label">
+          RV Gap
+        </span>
+
+        <strong
+          class="result-value"
+          [class.negative-value]="
+            forecastResult.rv_gap < 0
+          "
+          [class.positive-value]="
+            forecastResult.rv_gap >= 0
+          "
+        >
+
+          {{
+            forecastResult.rv_gap
+            | number:'1.0-2'
+          }}
+
+        </strong>
+
+        <small>
+          Updated forecast − original RV
+        </small>
+
+      </div>
+
+
+
+      <div class="result-card">
+
+        <span class="result-label">
+          Potential RV Exposure
+        </span>
+
+        <strong
+          class="result-value"
+          [class.negative-value]="
+            forecastResult.potential_rv_exposure > 0
+          "
+        >
+
+          {{
+            forecastResult.potential_rv_exposure
+            | number:'1.0-2'
+          }}
+
+        </strong>
+
+        <small>
+          Potential shortfall exposure
+        </small>
+
+      </div>
+
+    </div>
+
+
+
+    <!-- =====================================
+         VALUE COMPARISON CHART
+    ====================================== -->
+
+    <div class="comparison-card">
+
+      <div class="comparison-header">
+
+        <div>
+
+          <h3>
+            Original vs Updated Lease-End Estimate
+          </h3>
+
+          <p>
+            Comparison of the original residual-value
+            expectation with the latest generated estimate.
+          </p>
+
+        </div>
+
+      </div>
+
+
+
+      <div class="comparison-chart">
+
+
+        <!-- ORIGINAL RV -->
+
+        <div class="chart-row">
+
+          <div class="chart-label">
+
+            <span>
+              Original RV
+            </span>
+
+            <strong>
+              {{
+                forecastResult.original_rv
+                | number:'1.0-2'
+              }}
+            </strong>
+
+          </div>
+
+
+          <div class="bar-track">
+
+            <div
+              class="bar original-bar"
+              [style.width.%]="
+                getComparisonBarWidth(
+                  forecastResult.original_rv
+                )
+              "
+            >
+            </div>
+
+          </div>
+
+        </div>
+
+
+
+        <!-- UPDATED FORECAST -->
+
+        <div class="chart-row">
+
+          <div class="chart-label">
+
+            <span>
+              Updated Estimate
+            </span>
+
+            <strong>
+              {{
+                forecastResult.updated_forecast
+                | number:'1.0-2'
+              }}
+            </strong>
+
+          </div>
+
+
+          <div class="bar-track">
+
+            <div
+              class="bar updated-bar"
+              [class.exposure-bar]="
+                forecastResult.rv_gap < 0
+              "
+              [class.above-rv-bar]="
+                forecastResult.rv_gap >= 0
+              "
+              [style.width.%]="
+                getComparisonBarWidth(
+                  forecastResult.updated_forecast
+                )
+              "
+            >
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+
+      <div class="chart-insight">
+
+        <span class="insight-label">
+          Difference
+        </span>
+
+        <strong
+          [class.negative-value]="
+            forecastResult.rv_gap < 0
+          "
+          [class.positive-value]="
+            forecastResult.rv_gap >= 0
+          "
+        >
+
+          {{
+            forecastResult.rv_gap
+            | number:'1.0-2'
+          }}
+
+        </strong>
+
+      </div>
+
+    </div>
+
+
+
+    <!-- =====================================
+         PROJECTION DETAILS
+    ====================================== -->
+
+    <div class="projection-section">
+
+      <h3>
+        Projection Details
+      </h3>
+
+
+      <div class="projection-grid">
+
+
+        <div class="projection-item">
+
+          <span>
+            Projected Mileage
+          </span>
+
+          <strong>
+            {{
+              forecastResult.projected_mileage
+              | number
+            }}
+            km
+          </strong>
+
+        </div>
+
+
+        <div class="projection-item">
+
+          <span>
+            Projected Vehicle Age
+          </span>
+
+          <strong>
+            {{ forecastResult.projected_vehicle_age }}
+            years
+          </strong>
+
+        </div>
+
+
+        <div class="projection-item">
+
+          <span>
+            Review Status
+          </span>
+
+          <strong>
+            {{ forecastResult.review_status }}
+          </strong>
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+
+    <!-- =====================================
+         WARNINGS
+    ====================================== -->
+
+    <div
+      class="forecast-warnings"
+      *ngIf="
+        forecastResult.warnings &&
+        forecastResult.warnings.length > 0
+      "
+    >
+
+      <div class="warning-title">
+        Forecast Warnings
+      </div>
+
+
+      <ul>
+
+        <li
+          *ngFor="
+            let warning of forecastResult.warnings
+          "
+        >
+          {{ warning }}
+        </li>
+
+      </ul>
+
+    </div>
+
+
+
+    <!-- SAVE ERROR -->
+
+    <div
+      class="message-box error-message"
+      *ngIf="saveForecastError"
+    >
+      {{ saveForecastError }}
+    </div>
+
+
+
+    <!-- SAVE SUCCESS -->
+
+    <div
+      class="message-box success-message"
+      *ngIf="forecastSaved"
+    >
+
+      <strong>
+        Forecast saved successfully.
+      </strong>
+
+      <span>
+        The accepted forecast can now be reflected
+        in the Portfolio view.
+      </span>
+
+    </div>
+
+
+
+    <!-- =====================================
+         RESULT ACTIONS
+    ====================================== -->
+
+    <div class="forecast-actions result-actions">
+
+      <button
+        class="secondary-button"
+        [disabled]="savingForecast"
+        (click)="resetForecastResult()"
+      >
+        Adjust Inputs
+      </button>
+
+
+      <button
+        class="primary-button"
+        [disabled]="
+          savingForecast ||
+          forecastSaved
+        "
+        (click)="saveForecast()"
+      >
+
+        {{
+          savingForecast
+            ? 'Saving Forecast...'
+            : forecastSaved
+              ? 'Forecast Saved'
+              : 'Save Forecast'
+        }}
+
+      </button>
+
+      <button
+        type="button"
+        class="secondary-button"
+        *ngIf="forecastSaved"
+        (click)="backToPortfolio()"
+      >
+        Return to Portfolio
+      </button>
+
+    </div>
+
+  </section>
+
+
+</div>

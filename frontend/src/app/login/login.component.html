@@ -1,0 +1,66 @@
+<div class="login-page">
+
+  <div class="login-card">
+
+    <h1>ARVF Engine</h1>
+
+    <p>
+      Automotive Residual Value Forecasting
+    </p>
+
+    <label>Email Address</label>
+
+    <input
+      type="email"
+      [(ngModel)]="email"
+      placeholder="analyst@company.com"
+    >
+
+    <label>Password</label>
+
+    <input
+      type="password"
+      [(ngModel)]="password"
+    >
+
+    <div
+      class="error-message"
+      *ngIf="errorMessage"
+    >
+      {{ errorMessage }}
+    </div>
+
+    <button
+      type="button"
+      (click)="login()"
+      [disabled]="loading"
+    >
+      {{ loading ? 'Signing in...' : 'Sign In' }}
+    </button>
+
+    <div class="account-link">
+
+      Don't have an account?
+
+      <a
+        routerLink="/register"
+        class="register-link"
+      >
+        Create account
+      </a>
+
+    </div>
+
+
+    <!-- Security/footer note can stay below it -->
+
+    <div class="security-note">
+      Authorized company access only.
+      Account activity may be monitored
+      for security purposes.
+    </div>
+
+
+  </div>
+
+</div>

@@ -1,0 +1,324 @@
+  <!-- PAGE HEADER -->
+
+  <div class="page-header">
+
+    <div>
+
+      <div class="page-eyebrow">
+        Portfolio Vehicle
+      </div>
+
+
+      <h1>
+        Vehicle Details
+      </h1>
+
+
+      <p>
+        Review the latest vehicle, inspection,
+        lease and residual-value information.
+
+      </p>
+
+    </div>
+
+
+    <div class="header-actions">
+      <button
+        type="button"
+        class="secondary-button"
+        (click)="backToPortfolio()"
+      >
+        Back to Portfolio
+      </button>
+      <button
+        type="button"
+        class="primary-button"
+        [disabled]="!vehicle || activeImportId === null"
+        (click)="forecastVehicle()"
+      >
+        Generate Forecast
+      </button>
+    </div>
+
+  </div>
+
+
+
+  <!-- LOADING -->
+
+  <div
+    class="state-card"
+    *ngIf="loading"
+  >
+
+    <div class="spinner"></div>
+
+    <strong>
+      Loading vehicle details...
+    </strong>
+
+
+    <span>
+      Retrieving the latest vehicle,
+      inspection and lease information.
+    </span>
+
+  </div>
+
+
+
+  <!-- ERROR -->
+
+  <div
+    class="error-card"
+    *ngIf="
+      !loading &&
+      errorMessage
+    "
+  >
+
+    <strong>
+      Vehicle details unavailable
+    </strong>
+
+
+    <p>
+      {{ errorMessage }}
+    </p>
+
+
+    <button
+      class="secondary-button"
+      (click)="backToPortfolio()"
+    >
+      Return to Portfolio
+    </button>
+
+  </div>
+
+
+
+  <!-- VEHICLE DETAILS -->
+
+  <div
+    class="forecast-layout"
+    *ngIf="
+      !loading &&
+      vehicle &&
+      !errorMessage
+    "
+  >
+
+
+    <!-- VEHICLE INFORMATION -->
+
+    <section class="content-card">
+
+      <div class="card-header">
+
+        <div>
+
+          <div class="section-label">
+            Vehicle
+          </div>
+
+
+          <h2>
+            Vehicle Information
+          </h2>
+
+        </div>
+
+
+        <span class="vehicle-badge">
+
+          Vehicle #{{ vehicleId }}
+
+        </span>
+
+      </div>
+
+
+      <div class="details-grid">
+
+
+        <div class="detail-item">
+
+          <span class="detail-label">
+            Make
+          </span>
+
+          <strong>
+            {{ vehicle.make || '—' }}
+          </strong>
+
+        </div>
+
+
+        <div class="detail-item">
+
+          <span class="detail-label">
+            Model
+          </span>
+
+          <strong>
+            {{ vehicle.model || '—' }}
+          </strong>
+
+        </div>
+
+
+        <div class="detail-item">
+
+          <span class="detail-label">
+            Model Year
+          </span>
+
+          <strong>
+            {{ vehicle.year || vehicle.model_year || '—' }}
+          </strong>
+
+        </div>
+
+
+        <div class="detail-item">
+
+          <span class="detail-label">
+            Current Mileage
+          </span>
+
+          <strong>
+
+            {{
+              vehicle.current_mileage
+              | number
+            }}
+
+            km
+
+          </strong>
+
+        </div>
+
+
+        <div class="detail-item">
+
+          <span class="detail-label">
+            Current Condition
+          </span>
+
+          <strong>
+            {{ vehicle.current_condition || '—' }}
+          </strong>
+
+        </div>
+
+
+        <div class="detail-item">
+
+          <span class="detail-label">
+            Last Inspection
+          </span>
+
+          <strong>
+
+            {{
+              vehicle.last_inspection_date
+              ?
+              (vehicle.last_inspection_date
+                | date:'mediumDate')
+              :
+              'No inspection recorded'
+            }}
+
+          </strong>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+
+    <!-- LEASE INFORMATION -->
+
+    <section class="content-card">
+
+      <div class="card-header">
+
+        <div>
+
+          <div class="section-label">
+            Lease
+          </div>
+
+          <h2>
+            Lease Information
+          </h2>
+
+        </div>
+
+      </div>
+
+
+      <div class="details-grid">
+
+
+        <div class="detail-item">
+
+          <span class="detail-label">
+            Lease Start
+          </span>
+
+          <strong>
+
+            {{
+              vehicle.lease_start_date
+              | date:'mediumDate'
+            }}
+
+          </strong>
+
+        </div>
+
+
+        <div class="detail-item">
+
+          <span class="detail-label">
+            Lease End
+          </span>
+
+          <strong>
+
+            {{
+              vehicle.lease_end_date
+              | date:'mediumDate'
+            }}
+
+          </strong>
+
+        </div>
+
+
+        <div class="detail-item">
+
+          <span class="detail-label">
+            Original RV
+          </span>
+
+          <strong>
+
+            {{
+              vehicle.original_rv
+              | number:'1.0-2'
+            }}
+
+          </strong>
+
+        </div>
+
+      </div>
+
+    </section>

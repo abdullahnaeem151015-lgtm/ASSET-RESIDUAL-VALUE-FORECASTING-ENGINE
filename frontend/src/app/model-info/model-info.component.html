@@ -1,0 +1,170 @@
+<main class="model-info-page">
+  <header class="page-header">
+    <p class="eyebrow">Model transparency</p>
+    <h1>Model Information</h1>
+    <p>See what the valuation model estimates, how the lease-end estimate is built, and what its scores do and do not tell you.</p>
+  </header>
+
+  <p class="message error" *ngIf="error">{{ error }}</p>
+
+  <ng-container>
+    <div class="model-info-layout">
+      <div class="model-info-main">
+        <section class="model-identity" aria-labelledby="model-identity-title">
+          <div class="section-heading">
+            <div>
+              <p class="section-label">Active model</p>
+              <h2 id="model-identity-title">Voting Regressor</h2>
+            </div>
+            <span class="model-type-badge">Regression Ensemble</span>
+          </div>
+          <dl class="model-identity-grid">
+            <div><dt>Model Name</dt><dd>Voting Regressor</dd></div>
+            <div><dt>Model Version</dt><dd>v1.0</dd></div>
+            <div><dt>Model Type</dt><dd>Regression Ensemble</dd></div>
+            <div><dt>Algorithms</dt><dd>XGBoost + LightGBM + CatBoost</dd></div>
+          </dl>
+        </section>
+
+        <section class="performance-section" aria-labelledby="performance-title">
+          <div class="section-heading">
+            <div>
+              <p class="section-label">Evaluation snapshot</p>
+              <h2 id="performance-title">Model Performance</h2>
+            </div>
+            <div class="target-badge">
+              <span>Target</span>
+              <strong>Vehicle Market Price</strong>
+            </div>
+          </div>
+
+          <p class="registry-note" *ngIf="!loading && !hasRegisteredMetrics" role="status">
+            <strong>Registry note</strong>
+            <span *ngIf="modelInfo?.message">{{ modelInfo.message }}. The reported scores below were supplied for this model screen and are not yet verified against a registered model record.</span>
+            <span *ngIf="error">The backend could not confirm a registered metric record. The reported scores below are shown as supplied for this screen.</span>
+            <span *ngIf="!modelInfo?.message && !error">The backend has no complete registered metric record. The reported scores below were supplied for this model screen.</span>
+          </p>
+          <p class="registry-note registered-note" *ngIf="hasRegisteredMetrics" role="status">
+            Scores loaded from the registered backend model record.
+          </p>
+
+          <div class="metric-grid" aria-label="Model performance metrics">
+            <article class="metric-card">
+              <span class="metric-label">MAE</span>
+              <strong>{{ performanceMetrics.mae | number:'1.1-1' }}</strong>
+              <span class="metric-unit">Price units · lower is better</span>
+            </article>
+            <article class="metric-card metric-emphasis">
+              <span class="metric-label">RMSE</span>
+              <strong>{{ performanceMetrics.rmse | number:'1.1-1' }}</strong>
+              <span class="metric-unit">Price units · lower is better</span>
+            </article>
+            <article class="metric-card">
+              <span class="metric-label">R<sup>2</sup></span>
+              <strong>{{ performanceMetrics.r_squared | number:'1.3-3' }}</strong>
+              <span class="metric-unit">Fit indicator · closer to 1 is better</span>
+            </article>
+            <p class="metric-footnote">MAE and RMSE use the same monetary units as the vehicle market-price target. No currency symbol is shown because the registered endpoint does not identify one.</p>
+          </div>
+        </section>
+
+        <details class="user-guide" open>
+          <summary>
+            <span class="guide-kicker">User guide</span>
+            <strong>How a lease-end estimate is built</strong>
+            <span class="guide-summary-copy">The model estimates a vehicle price from its characteristics; lease inputs are used to construct a projected vehicle state.</span>
+          </summary>
+          <div class="guide-steps">
+            <article>
+              <span class="step-number">01</span>
+              <div><h3>Describe the vehicle</h3><p>Vehicle make and model, year, mileage, horsepower, condition, accident history, and available vehicle attributes are prepared as model inputs.</p></div>
+            </article>
+            <article>
+              <span class="step-number">02</span>
+              <div><h3>Project its lease-end state</h3><p>Expected annual mileage and time remaining to lease end are used to estimate future mileage and vehicle age. An optional lease-end condition can define the scenario.</p></div>
+            </article>
+            <article>
+              <span class="step-number">03</span>
+              <div><h3>Estimate market price</h3><p>The trained vehicle-price model scores that projected profile. It was trained for vehicle market price, not as a time-series model of historical residual values.</p></div>
+            </article>
+            <article>
+              <span class="step-number">04</span>
+              <div><h3>Compare with the original RV</h3><p>The estimated market price is compared with the lease's original residual value. The resulting gap indicates potential exposure or value above the original RV.</p></div>
+            </article>
+          </div>
+        </details>
+      </div>
+
+      <aside class="model-info-rail">
+        <section class="metric-definitions" aria-labelledby="definitions-title">
+          <p class="section-label">Metric guide</p>
+          <h2 id="definitions-title">Reading the scores</h2>
+          <dl>
+            <div>
+              <dt>MAE · Mean Absolute Error</dt>
+              <dd>Average size of the difference between a predicted and actual market price. It treats each error evenly.</dd>
+            </div>
+            <div>
+              <dt>RMSE · Root Mean Squared Error</dt>
+              <dd>Typical error size with larger misses weighted more heavily than with MAE.</dd>
+            </div>
+            <div>
+              <dt>R<sup>2</sup> · Coefficient of Determination</dt>
+              <dd>How much variation in market prices the model explains on its evaluation data. It is not a percentage accuracy score.</dd>
+            </div>
+          </dl>
+        </section>
+
+        <section class="transparency-section" aria-labelledby="strengths-limitations-title">
+          <p class="section-label">Model assessment</p>
+          <h2 id="strengths-limitations-title">Strengths &amp; Limitations</h2>
+          <div class="assessment-block">
+            <h3>Strengths</h3>
+            <ul>
+              <li>Uses multiple vehicle characteristics together to estimate market price.</li>
+              <li>Projects mileage and age from explicit lease assumptions before estimating the lease-end vehicle state.</li>
+              <li>Provides an interpretable comparison against the original RV, including the size and direction of the gap.</li>
+            </ul>
+          </div>
+          <div class="assessment-block limitation-block">
+            <h3>Limitations</h3>
+            <ul>
+              <li>Performance scores describe vehicle market-price prediction, not direct lease-end RV or RV-gap accuracy.</li>
+              <li>This is not a time-series forecast trained on earlier market prices to predict later residual values.</li>
+              <li>Market shifts and unobserved vehicle history can affect results; projected mileage and any assumed lease-end condition are scenario inputs.</li>
+            </ul>
+          </div>
+        </section>
+
+        <section class="notebook-reference" aria-labelledby="notebook-reference-title">
+          <div>
+            <p class="section-label">Training reference</p>
+            <h2 id="notebook-reference-title">Model development notebook</h2>
+            <p>Open the notebook for the dataset exploration, evaluation, and ensemble training workflow.</p>
+          </div>
+          <a
+            class="notebook-link"
+            href="https://www.kaggle.com/code/abdullahnaeem151015/ml-models-training-for-price-prediction"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <strong>View Training Notebook</strong>
+            <span aria-hidden="true">↗</span>
+          </a>
+        </section>
+      </aside>
+    </div>
+
+    <section class="registered-details" *ngIf="modelInfo && !modelInfo.message" aria-labelledby="registered-model-title">
+      <h2 id="registered-model-title">Registered model record</h2>
+      <dl class="model-details">
+        <div><dt>Model</dt><dd>{{ modelInfo.model_name || 'Not provided' }}</dd></div>
+        <div><dt>Version</dt><dd>{{ modelInfo.version || 'Not provided' }}</dd></div>
+        <div><dt>Status</dt><dd>{{ modelInfo.status || 'Not provided' }}</dd></div>
+        <div><dt>Last trained</dt><dd>{{ modelInfo.last_trained || 'Not provided' }}</dd></div>
+        <div><dt>Data scope</dt><dd>{{ modelInfo.data_scope || 'Not provided' }}</dd></div>
+        <div><dt>Notes</dt><dd>{{ modelInfo.notes || 'None' }}</dd></div>
+      </dl>
+    </section>
+  </ng-container>
+</main>

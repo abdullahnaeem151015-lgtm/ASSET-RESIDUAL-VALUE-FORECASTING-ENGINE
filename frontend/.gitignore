@@ -1,0 +1,36 @@
+# Frontend Git ignore file
+
+# Python local environment and cache
+.venv/
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# VS Code
+.vscode/
+
+
+# Angular generated/dependency files
+frontend/node_modules/
+frontend/dist/
+frontend/.angular/
+frontend/.pytest_cache/
+frontend/.vscode/
+
+# Old nested Git backup
+frontend/.git-backup/
+
+# Backend tests we do not want in the repository
+app/test_api.py
+app/test_database.py
+app/test_model.py
+
+# Secrets
+.env
+.env.*
+
+
+# OS temporary files
+.DS_Store
+Thumbs.db

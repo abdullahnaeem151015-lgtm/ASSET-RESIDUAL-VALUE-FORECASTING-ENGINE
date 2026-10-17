@@ -1,0 +1,342 @@
+/* =========================================
+   LOGIN PAGE
+========================================= */
+
+.login-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 32px 20px;
+
+  background: #f5f7fb;
+}
+
+
+/* =========================================
+   LOGIN CARD
+========================================= */
+
+.login-card {
+  width: 100%;
+  max-width: 390px;
+
+  padding: 34px 36px;
+
+  background: #ffffff;
+
+  border: 1px solid #dfe5ee;
+  border-radius: 10px;
+
+  box-shadow:
+    0 8px 28px rgba(23, 35, 58, 0.08);
+}
+
+
+/* =========================================
+   BRAND
+========================================= */
+
+.brand {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.brand-mark {
+  width: 44px;
+  height: 44px;
+
+  margin: 0 auto 14px;
+
+  border-radius: 6px;
+
+  background: #2864dc;
+}
+
+.brand h1 {
+  margin: 0;
+
+  font-size: 27px;
+  font-weight: 750;
+
+  color: #123d92;
+}
+
+.brand h2 {
+  margin: 8px 0 0;
+
+  font-size: 17px;
+  line-height: 1.35;
+  font-weight: 700;
+
+  color: #17233a;
+}
+
+.brand p {
+  margin: 14px 0 0;
+
+  font-size: 13px;
+
+  color: #718096;
+}
+
+
+/* =========================================
+   FORM
+========================================= */
+
+.form-group {
+  margin-bottom: 18px;
+}
+
+.form-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  margin-bottom: 7px;
+}
+
+label {
+  display: block;
+
+  margin-bottom: 7px;
+
+  font-size: 12px;
+  font-weight: 650;
+
+  color: #27364c;
+}
+
+.form-label-row label {
+  margin-bottom: 0;
+}
+
+input {
+  width: 100%;
+  box-sizing: border-box;
+
+  padding: 11px 12px;
+
+  border: 1px solid #cbd4df;
+  border-radius: 6px;
+
+  background: #ffffff;
+
+  color: #17233a;
+
+  font-size: 13px;
+
+  outline: none;
+
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+input::placeholder {
+  color: #9ba7b7;
+}
+
+input:focus {
+  border-color: #2864dc;
+
+  box-shadow:
+    0 0 0 3px rgba(40, 100, 220, 0.12);
+}
+
+
+/* =========================================
+   PASSWORD
+========================================= */
+
+.password-wrapper {
+  position: relative;
+}
+
+.password-wrapper input {
+  padding-right: 42px;
+}
+
+.password-toggle {
+  position: absolute;
+
+  top: 50%;
+  right: 10px;
+
+  transform: translateY(-50%);
+
+  border: 0;
+  background: transparent;
+
+  color: #607087;
+
+  font-size: 12px;
+
+  cursor: pointer;
+}
+
+.password-toggle:hover {
+  color: #2864dc;
+}
+
+
+/* =========================================
+   FORGOT LINK
+========================================= */
+
+.forgot-link,
+.register-link {
+  color: #2864dc;
+
+  font-size: 12px;
+  font-weight: 650;
+
+  text-decoration: none;
+
+  cursor: pointer;
+}
+
+.forgot-link:hover,
+.register-link:hover {
+  text-decoration: underline;
+}
+
+
+/* =========================================
+   REMEMBER
+========================================= */
+
+.remember-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  margin-bottom: 20px;
+}
+
+.remember-row input {
+  width: auto;
+
+  accent-color: #2864dc;
+}
+
+.remember-row span {
+  font-size: 12px;
+
+  color: #56657a;
+}
+
+
+/* =========================================
+   ERROR
+========================================= */
+
+.error-message {
+  margin-bottom: 16px;
+
+  padding: 10px 12px;
+
+  border: 1px solid #f0cccc;
+  border-radius: 6px;
+
+  background: #fff4f4;
+
+  color: #9f3333;
+
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+
+/* =========================================
+   SIGN IN BUTTON
+========================================= */
+
+.primary-button {
+  width: 100%;
+
+  padding: 11px 16px;
+
+  border: 0;
+  border-radius: 6px;
+
+  background: #2864dc;
+
+  color: #ffffff;
+
+  font-size: 13px;
+  font-weight: 700;
+
+  cursor: pointer;
+
+  transition: background 0.2s ease;
+}
+
+.primary-button:hover:not(:disabled) {
+  background: #2058c8;
+}
+
+.primary-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+
+/* =========================================
+   REGISTER LINK AREA
+========================================= */
+
+.account-link {
+  margin-top: 20px;
+
+  text-align: center;
+
+  font-size: 12px;
+
+  color: #718096;
+}
+
+
+/* =========================================
+   SECURITY FOOTER
+========================================= */
+
+.security-note {
+  margin-top: 26px;
+  padding-top: 18px;
+
+  border-top: 1px solid #e7ebf1;
+
+  text-align: center;
+
+  font-size: 11px;
+  line-height: 1.5;
+
+  color: #7e899a;
+}
+
+
+/* =========================================
+   MOBILE
+========================================= */
+
+@media (max-width: 480px) {
+
+  .login-page {
+    padding: 18px;
+  }
+
+  .login-card {
+    padding: 28px 22px;
+  }
+
+  .brand h1 {
+    font-size: 24px;
+  }
+
+  .brand h2 {
+    font-size: 16px;
+  }
+}
