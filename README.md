@@ -120,42 +120,49 @@ SQL Server Database
 Prediction Pipeline
         ↓
 Voting Regressor
-
----
+```
 
 ## How to run project locally
 
 - From the main project directory, install the Python dependencies:
-
-.\.venv\Scripts\python.exe -m pip install requirements
+```text
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+```
 
 - Start the FAST API backend
-
+```text
 .\.venv\Scripts\python.exe -m uvicorn app.main:app --reload --port 8001
-
+```
 Backend runs locally at:
-
+```text
 http://127.0.0.1:8001
-
+```
 FastAPI Swagger documentation is available at:
-
+```text
 http://127.0.0.1:8001/docs
+```
 
-- Once FAST API opens and runs on the browser that open new terminal with directory setup as cd frontend
+- Once FAST API opens and runs on the browser open new terminal with directory setup as:
+```text
+cd frontend
+```
 
 - Once directory is setup open the angular frontend page using command:
-
+```text
 npm.cmd start
+```
 
 If Angular reports that port `4200` is already in use, stop the process currently using that port using following commands in the terminal:
-
+```text
 netstat -ano | findstr :4200
 taskkill /PID 12345 /F
-(Replace the 12345 number with the number shown on the first line where listning is written)
+```
+(Replace the 12345 number with the number shown on the first line where listening is written)
 
 Once process is stopped than reopen the frontend page using the command
-
+```text
 npm.cmd start
+```
 
 ## Conclusion
 
