@@ -120,7 +120,6 @@ SQL Server Database
 Prediction Pipeline
         ↓
 Voting Regressor
-
 ```
 
 ## Conclusion
